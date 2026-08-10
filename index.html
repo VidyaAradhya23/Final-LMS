@@ -15,129 +15,29 @@
 
 <body>
     <!-- ═══════ LOGIN SCREEN ═══════ -->
-<div id="login-screen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse 80% 70% at 20% 40%,rgba(0,112,243,0.18),transparent 60%),radial-gradient(ellipse 70% 60% at 80% 20%,rgba(108,71,255,0.15),transparent 55%),var(--bg)">
-  <div class="sap-sf-wrapper">
-    
-    <!-- Top SAP SuccessFactors Enterprise Portal Header -->
-    <div class="sap-sf-portal-bar">
-      <div class="sap-sf-brand">
-        <div class="sap-sf-logo-chip">SAP SuccessFactors®</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text)">Enterprise Identity Portal & SSO Gateway</div>
-      </div>
-      <div class="sap-sf-user-badge">
-        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ade80"></span>
-        <span id="sap-active-user-name">Authenticated User: <strong>Arjun Sharma (Student)</strong></span>
-      </div>
+<div id="login-screen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse 70% 60% at 15% 50%,rgba(108,71,255,0.15),transparent 60%),radial-gradient(ellipse 60% 50% at 85% 20%,rgba(0,112,243,0.15),transparent 55%),var(--bg)">
+  <div class="login-wrap" style="max-width:520px;width:100%">
+    <div class="login-logo" style="text-align:center;margin-bottom:24px">
+      <div class="logo-badge" style="background:rgba(0,112,243,0.2);color:#60a5fa;border:1px solid rgba(0,112,243,0.3);display:inline-block">SAP SUCCESSFACTORS INTEGRATED</div>
+      <h1 style="font-size:28px;margin:10px 0 6px 0">RV Learning Hub LMS</h1>
+      <p style="color:var(--muted);font-size:14px">Single Sign-On (SSO) Portal Gateway</p>
     </div>
 
-    <!-- Direct Login Restriction Security Card (Shown when accessed via direct URL without SAP SSO) -->
-    <div id="direct-access-blocked-card" class="sap-sf-main-card" style="text-align:center;padding:36px 28px">
-      <div style="font-size:54px;margin-bottom:12px">🔒</div>
-      <div class="logo-badge" style="background:rgba(255,45,107,0.15);color:#ff2d6b;border:1px solid rgba(255,45,107,0.3);margin:0 auto 14px auto;display:inline-block">DIRECT ACCESS RESTRICTED</div>
-      <h1 style="font-size:26px;color:var(--text);margin-bottom:10px">SAP SuccessFactors Authentication Required</h1>
-      <p style="color:var(--muted);font-size:14px;max-width:620px;margin:0 auto 24px auto;line-height:1.6">
-        Direct URL login to the LMS is <strong>disabled by institutional security policy</strong>. All Students, Faculty, and Admins must first log into their official <strong>SAP SuccessFactors</strong> account and click the <strong>LMS</strong> option to enter their respective role-based dashboard.
+    <div class="login-card" style="text-align:center;padding:32px 24px;border:1px solid rgba(0,112,243,0.25)">
+      <div style="font-size:42px;margin-bottom:12px">🎓</div>
+      <h2 style="font-size:22px;margin-bottom:8px">SAP SuccessFactors SSO Login</h2>
+      <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:24px">
+        Please access the LMS through your official <strong>SAP SuccessFactors</strong> account. Clicking the LMS option in SAP automatically authenticates your role and opens your dashboard.
       </p>
 
-      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap">
-        <button class="sap-launch-btn" style="width:auto;padding:14px 28px" id="btn-sap-restricted-launch">
-          <span>🏢 Launch via SAP SuccessFactors SSO</span>
-        </button>
-        <button id="btn-toggle-config-hub" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:var(--text);padding:14px 24px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer">
-          <span>📋 SAP Integration Links & Setup</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Main SAP SuccessFactors LMS Gateway & Role Simulator Card -->
-    <div class="sap-sf-main-card" id="sap-main-hub-card" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
-        <div>
-          <div class="logo-badge" style="background:rgba(0,112,243,0.2);color:#60a5fa;border:1px solid rgba(0,112,243,0.4)">SAP SUCCESSFACTORS INTEGRATED LMS</div>
-          <h1 style="font-size:26px;margin:8px 0 4px 0;color:var(--text)">RV Learning Hub LMS Dashboard</h1>
-          <p style="color:var(--muted);font-size:14px">Select your SAP SuccessFactors account role to enter your dedicated LMS dashboard directly.</p>
-        </div>
-        <button id="btn-hide-config-hub" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:var(--muted);padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer">← Back to Restriction Notice</button>
-      </div>
-
-      <!-- SAP Role Selector -->
-      <div class="sap-sf-role-selector">
-        <div class="sap-role-card active" id="sap-rc-student">
-          <div class="icon">🎓</div>
-          <div class="title">Student Account</div>
-          <div class="desc">Arjun Sharma (RV2024001)</div>
-          <div style="font-size:11px;margin-top:6px;color:#4ade80;font-weight:700">→ Student LMS Dashboard</div>
-        </div>
-        <div class="sap-role-card" id="sap-rc-faculty">
-          <div class="icon">👨‍🏫</div>
-          <div class="title">Faculty Account</div>
-          <div class="desc">Dr. Priya Mehta (RVF001)</div>
-          <div style="font-size:11px;margin-top:6px;color:#00d4c8;font-weight:700">→ Faculty LMS Dashboard</div>
-        </div>
-        <div class="sap-role-card" id="sap-rc-admin">
-          <div class="icon">🛡️</div>
-          <div class="title">Admin Account</div>
-          <div class="desc">Rahul Verma (ADM-001)</div>
-          <div style="font-size:11px;margin-top:6px;color:#ff2d6b;font-weight:700">→ Admin LMS Dashboard</div>
-        </div>
-      </div>
-
-      <button class="sap-launch-btn" id="btn-sap-launch">
-        <span>🚀</span>
-        <span>Launch LMS Dashboard from SAP SuccessFactors</span>
+      <button class="sap-launch-btn" style="width:100%;padding:14px;font-size:15px" onclick="launchSapSSO('student')">
+        <span>🏢 Log in via SAP SuccessFactors SSO</span>
       </button>
 
       <div id="login-error" style="display:none;background:rgba(255,45,107,.12);border:1px solid rgba(255,45,107,.4);color:#ff2d6b;border-radius:8px;padding:11px 14px;font-size:13px;margin-top:14px;text-align:center;font-weight:500"></div>
-
-      <!-- Copyable SAP SuccessFactors Menu Links -->
-      <div class="sap-link-config-box">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div style="font-weight:700;font-size:14px;color:#60a5fa">📋 Links for SAP SuccessFactors "LMS" Menu Option</div>
-          <span style="font-size:11px;color:var(--muted)">Direct SSO Links</span>
-        </div>
-        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Copy these exact URLs to configure the "LMS" option/tile in SAP SuccessFactors for each user role:</p>
-
-        <div class="sap-link-item">
-          <div><strong style="color:var(--student)">Student Link:</strong> <span id="link-url-student"></span></div>
-          <button class="sap-copy-btn" id="btn-copy-student">Copy Link</button>
-        </div>
-        <div class="sap-link-item">
-          <div><strong style="color:var(--faculty)">Faculty Link:</strong> <span id="link-url-faculty"></span></div>
-          <button class="sap-copy-btn" id="btn-copy-faculty">Copy Link</button>
-        </div>
-        <div class="sap-link-item">
-          <div><strong style="color:var(--admin)">Admin Link:</strong> <span id="link-url-admin"></span></div>
-          <button class="sap-copy-btn" id="btn-copy-admin">Copy Link</button>
-        </div>
-        <div class="sap-link-item">
-          <div><strong style="color:#fbbf24">Universal Link:</strong> <span id="link-url-universal"></span></div>
-          <button class="sap-copy-btn" id="btn-copy-universal">Copy Link</button>
-        </div>
-      </div>
     </div>
-
-    <!-- Legacy / Manual Form View (Initially Hidden) -->
-    <div id="manual-form-wrapper" style="display:none" class="login-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <h2>Manual Password Sign In</h2>
-        <button id="btn-back-sap" style="background:none;border:none;color:#60a5fa;cursor:pointer;font-size:12px;font-weight:600">← Back to SAP Portal</button>
-      </div>
-      <p class="sub">Fallback direct login</p>
-
-      <div class="role-grid">
-        <div class="role-card" style="--rc:var(--student)" id="rc-student">
-          <div class="ri">&#127891;</div>
-          <div class="rn">Student</div>
-        </div>
-        <div class="role-card" style="--rc:var(--faculty)" id="rc-faculty">
-          <div class="ri">&#128104;&#8205;&#127979;</div>
-          <div class="rn">Faculty</div>
-        </div>
-        <div class="role-card" style="--rc:var(--admin)" id="rc-admin">
-          <div class="ri">&#128737;</div>
-          <div class="rn">Admin</div>
-        </div>
-      </div>
+  </div>
+</div>
 
       <div class="form-group" style="margin-top:12px">
         <label>Email / Phone</label>

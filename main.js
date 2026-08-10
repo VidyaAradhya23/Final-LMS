@@ -542,50 +542,6 @@ document.addEventListener('DOMContentLoaded', function() {
   populateSapLinks();
   var isRedirecting = checkSapSSORedirect();
 
-  // SAP Role Cards
-  on('sap-rc-student', 'click', function() { selectSapRole('student'); });
-  on('sap-rc-faculty', 'click', function() { selectSapRole('faculty'); });
-  on('sap-rc-admin',   'click', function() { selectSapRole('admin');   });
-
-  // SAP Launch Button
-  on('btn-sap-launch', 'click', function() { launchSapSSO(); });
-
-  // SAP Link Copy Buttons
-  on('btn-copy-student', 'click', function() { copySapLink('student'); });
-  on('btn-copy-faculty', 'click', function() { copySapLink('faculty'); });
-  on('btn-copy-admin',   'click', function() { copySapLink('admin');   });
-  on('btn-copy-universal', 'click', function() { copySapLink('universal'); });
-
-  // SAP Restricted Launch & Config Hub Buttons
-  on('btn-sap-restricted-launch', 'click', function() { launchSapSSO('student'); });
-
-  on('btn-toggle-config-hub', 'click', function() {
-    var blockedCard = document.getElementById('direct-access-blocked-card');
-    var mainHubCard = document.getElementById('sap-main-hub-card');
-    if (blockedCard && mainHubCard) {
-      blockedCard.style.display = 'none';
-      mainHubCard.style.display = 'block';
-    }
-  });
-
-  on('btn-hide-config-hub', 'click', function() {
-    var blockedCard = document.getElementById('direct-access-blocked-card');
-    var mainHubCard = document.getElementById('sap-main-hub-card');
-    if (blockedCard && mainHubCard) {
-      mainHubCard.style.display = 'none';
-      blockedCard.style.display = 'block';
-    }
-  });
-
-  on('btn-back-sap', 'click', function() {
-    var manual = document.getElementById('manual-form-wrapper');
-    var mainCard = document.querySelector('.sap-sf-main-card');
-    if (manual && mainCard) {
-      manual.style.display = 'none';
-      mainCard.style.display = 'block';
-    }
-  });
-
   // Auto-login with existing token if no SSO URL redirect triggered
   if (!isRedirecting && token) {
     api('/api/auth/profile')
