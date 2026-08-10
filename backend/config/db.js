@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 let isMongoConnected = false;
 
 function connectDB(uri) {
-  return mongoose.connect(uri)
+  return mongoose.connect(uri, { serverSelectionTimeoutMS: 2000 })
     .then(() => {
       isMongoConnected = true;
       console.log('🍃 Connected to MongoDB successfully at:', uri);

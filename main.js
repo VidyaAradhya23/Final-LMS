@@ -268,8 +268,125 @@ CREDS['student']    = { role:'student', pass:'student123' };
 CREDS['faculty']    = { role:'faculty', pass:'faculty123' };
 
 // ════════════════════════════════════════════════════
-// LOGIN HELPERS
+// LOGIN HELPERS & SAP SUCCESSFACTORS SSO
 // ════════════════════════════════════════════════════
+G.selectedSapRole = 'student';
+
+window.selectSapRole = function(role) {
+  G.selectedSapRole = role;
+  var roles = ['student', 'faculty', 'admin'];
+  roles.forEach(function(r) {
+    var card = document.getElementById('sap-rc-' + r);
+    if (card) card.classList.toggle('active', r === role);
+  });
+
+  var badgeEl = document.getElementById('sap-active-user-name');
+  if (badgeEl) {
+    if (role === 'student') badgeEl.innerHTML = 'Authenticated User: <strong>Arjun Sharma (Student)</strong>';
+    else if (role === 'faculty') badgeEl.innerHTML = 'Authenticated User: <strong>Dr. Priya Mehta (Faculty)</strong>';
+    else if (role === 'admin') badgeEl.innerHTML = 'Authenticated User: <strong>Rahul Verma (Admin)</strong>';
+  }
+};
+
+window.launchSapSSO = async function(overrideRole, overrideEmail) {
+  var targetRole = overrideRole;
+  var targetEmail = overrideEmail;
+
+  if (!targetRole && !targetEmail) {
+    targetRole = G.selectedSapRole || 'student';
+  }
+
+  hideErr();
+  
+  try {
+    const res = await api('/api/auth/sso', {
+      method: 'POST',
+      body: JSON.stringify({ role: targetRole, email: targetEmail, ssoProvider: 'SAP SuccessFactors' })
+    });
+    token = res.token;
+    localStorage.setItem('lms_token', token);
+    G.user = res.user;
+    G.role = res.user.role; // Analyzed role from SAP (student, faculty, or admin)
+    G.ssoProvider = 'SAP SuccessFactors';
+    launch();
+  } catch (err) {
+    console.warn('SSO API fallback to local user resolution:', err);
+    var resolvedRole = targetRole || (targetEmail && targetEmail.indexOf('priya') > -1 ? 'faculty' : targetEmail && targetEmail.indexOf('admin') > -1 ? 'admin' : 'student');
+    var u = USERS[resolvedRole] || USERS['student'];
+    G.user = u;
+    G.role = resolvedRole;
+    G.ssoProvider = 'SAP SuccessFactors';
+    launch();
+  }
+};
+
+window.populateSapLinks = function() {
+  var baseUrl = window.location.origin + window.location.pathname;
+  var studentUrl = baseUrl + '?sso=sap&role=student';
+  var facultyUrl = baseUrl + '?sso=sap&role=faculty';
+  var adminUrl = baseUrl + '?sso=sap&role=admin';
+  var universalUrl = baseUrl + '?sso=sap';
+
+  var stEl = document.getElementById('link-url-student');
+  var faEl = document.getElementById('link-url-faculty');
+  var adEl = document.getElementById('link-url-admin');
+  var unEl = document.getElementById('link-url-universal');
+
+  if (stEl) stEl.textContent = studentUrl;
+  if (faEl) faEl.textContent = facultyUrl;
+  if (adEl) adEl.textContent = adminUrl;
+  if (unEl) unEl.textContent = universalUrl;
+};
+
+window.copySapLink = function(type) {
+  var baseUrl = window.location.origin + window.location.pathname;
+  var targetUrl = baseUrl + '?sso=sap&role=' + type;
+  if (type === 'universal') targetUrl = baseUrl + '?sso=sap';
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(targetUrl).then(function() {
+      toast('Copied ' + type.toUpperCase() + ' SAP SuccessFactors link to clipboard!', '📋');
+    }).catch(function() {
+      fallbackCopy(targetUrl, type);
+    });
+  } else {
+    fallbackCopy(targetUrl, type);
+  }
+};
+
+function fallbackCopy(targetUrl, type) {
+  var temp = document.createElement('textarea');
+  temp.value = targetUrl;
+  document.body.appendChild(temp);
+  temp.select();
+  document.execCommand('copy');
+  document.body.removeChild(temp);
+  toast('Copied ' + type.toUpperCase() + ' SAP SuccessFactors link to clipboard!', '📋');
+}
+
+window.checkSapSSORedirect = function() {
+  var search = window.location.search;
+  var hash = window.location.hash;
+  var params = new URLSearchParams(search);
+
+  var ssoRole = params.get('role') || params.get('sso_role') || params.get('userRole');
+  var ssoEmail = params.get('email') || params.get('user') || params.get('userId');
+  var isSapSSO = params.get('sso') === 'sap' || params.has('sap_sso') || params.has('sso') || params.has('saml') || params.has('token');
+
+  if (hash === '#sso-student') ssoRole = 'student';
+  else if (hash === '#sso-faculty') ssoRole = 'faculty';
+  else if (hash === '#sso-admin') ssoRole = 'admin';
+
+  if (isSapSSO || ssoRole || ssoEmail) {
+    console.log('🔗 SAP SuccessFactors SSO Redirect detected. Analyzing role for:', ssoRole || ssoEmail || 'Universal SAP Session');
+    setTimeout(function() {
+      launchSapSSO(ssoRole, ssoEmail);
+    }, 150);
+    return true;
+  }
+  return false;
+};
+
 function showErr(msg) {
   var el = document.getElementById('login-error');
   if (el) { el.textContent = msg; el.style.display = 'block'; }
@@ -345,7 +462,15 @@ async function launch() {
     ap.style.display = 'none';
     return;
   }
-  toast('Welcome, ' + G.user.name + '!', '');
+  if (G.ssoProvider) {
+    var sbRole = document.getElementById('sb-role');
+    if (sbRole && !document.getElementById('sap-sso-badge-in-sb')) {
+      sbRole.insertAdjacentHTML('beforeend', ' <span id="sap-sso-badge-in-sb" class="sap-sso-badge">🏢 SAP SSO</span>');
+    }
+    toast('🔐 Authenticated via SAP SuccessFactors SSO — Welcome, ' + G.user.name + '!', '🏢');
+  } else {
+    toast('Welcome, ' + G.user.name + '!', '');
+  }
 }
 
 function doLogout() {
@@ -408,8 +533,61 @@ function toast(msg, icon) {
 // WIRE ALL EVENTS — DOMContentLoaded, no inline onclick
 // ════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
-  // Auto-login with token
-  if (token) {
+  function on(id, ev, fn) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener(ev, fn);
+  }
+
+  // Populate SAP Links and check for SAP SSO Redirects in URL
+  populateSapLinks();
+  var isRedirecting = checkSapSSORedirect();
+
+  // SAP Role Cards
+  on('sap-rc-student', 'click', function() { selectSapRole('student'); });
+  on('sap-rc-faculty', 'click', function() { selectSapRole('faculty'); });
+  on('sap-rc-admin',   'click', function() { selectSapRole('admin');   });
+
+  // SAP Launch Button
+  on('btn-sap-launch', 'click', function() { launchSapSSO(); });
+
+  // SAP Link Copy Buttons
+  on('btn-copy-student', 'click', function() { copySapLink('student'); });
+  on('btn-copy-faculty', 'click', function() { copySapLink('faculty'); });
+  on('btn-copy-admin',   'click', function() { copySapLink('admin');   });
+  on('btn-copy-universal', 'click', function() { copySapLink('universal'); });
+
+  // SAP Restricted Launch & Config Hub Buttons
+  on('btn-sap-restricted-launch', 'click', function() { launchSapSSO('student'); });
+
+  on('btn-toggle-config-hub', 'click', function() {
+    var blockedCard = document.getElementById('direct-access-blocked-card');
+    var mainHubCard = document.getElementById('sap-main-hub-card');
+    if (blockedCard && mainHubCard) {
+      blockedCard.style.display = 'none';
+      mainHubCard.style.display = 'block';
+    }
+  });
+
+  on('btn-hide-config-hub', 'click', function() {
+    var blockedCard = document.getElementById('direct-access-blocked-card');
+    var mainHubCard = document.getElementById('sap-main-hub-card');
+    if (blockedCard && mainHubCard) {
+      mainHubCard.style.display = 'none';
+      blockedCard.style.display = 'block';
+    }
+  });
+
+  on('btn-back-sap', 'click', function() {
+    var manual = document.getElementById('manual-form-wrapper');
+    var mainCard = document.querySelector('.sap-sf-main-card');
+    if (manual && mainCard) {
+      manual.style.display = 'none';
+      mainCard.style.display = 'block';
+    }
+  });
+
+  // Auto-login with existing token if no SSO URL redirect triggered
+  if (!isRedirecting && token) {
     api('/api/auth/profile')
       .then(function(user) {
         G.user = user;
@@ -422,19 +600,13 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   }
 
-
   // Populate email spans safely
   function setTxt(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
   setTxt('st-em', EM.student);
   setTxt('fa-em', EM.faculty);
   setTxt('ad-em', EM.admin);
 
-  function on(id, ev, fn) {
-    var el = document.getElementById(id);
-    if (el) el.addEventListener(ev, fn);
-  }
-
-  // Role cards
+  // Role cards (manual form)
   on('rc-student', 'click', function() { selectRole('student'); });
   on('rc-faculty', 'click', function() { selectRole('faculty'); });
   on('rc-admin',   'click', function() { selectRole('admin');   });

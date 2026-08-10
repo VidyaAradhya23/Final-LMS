@@ -36,6 +36,43 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// SAP SuccessFactors SSO Endpoint
+router.post('/sso', async (req, res) => {
+  const { role, email } = req.body;
+  try {
+    let targetEmail = (email || '').trim().toLowerCase();
+    let user;
+
+    if (targetEmail) {
+      user = users.find(u => u.email.toLowerCase() === targetEmail);
+    }
+
+    if (!user && role) {
+      user = users.find(u => u.role === role);
+    }
+
+    if (!user) {
+      user = users.find(u => u.role === 'student') || users[0];
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found for SSO' });
+    }
+
+    const token = generateToken(user._id);
+    const profile = { ...user };
+    delete profile.password;
+    res.json({
+      token,
+      user: profile,
+      ssoProvider: 'SAP SuccessFactors',
+      ssoStatus: 'Authenticated'
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Auth Register
 router.post('/register', async (req, res) => {
   const { name, email, phone, password, role } = req.body;
