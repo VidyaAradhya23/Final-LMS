@@ -233,10 +233,51 @@ async function syncLMSData() {
     if (window.QUESTION_PAPERS) QUESTION_PAPERS = window.QUESTION_PAPERS;
     if (window.QUIZ_RESULTS) QUIZ_RESULTS = window.QUIZ_RESULTS;
     if (window.PAYMENT_HISTORY) PAYMENT_HISTORY = window.PAYMENT_HISTORY;
+
+    // Save to Local Storage for offline persistence
+    saveLocalStore();
   } catch (err) {
     console.error('Error syncing LMS data:', err);
+    var cached = loadLocalStore();
+    if (cached) {
+      if (cached.courses) window.COURSE_DB = cached.courses;
+      if (cached.students) window.ADMIN_STUDENTS = cached.students;
+      if (cached.faculty) window.ADMIN_FACULTY = cached.faculty;
+    }
   }
 }
+
+// Local Persistence Engine for Student, Faculty & Admin Data
+window.saveLocalStore = function() {
+  try {
+    const storeData = {
+      timestamp: Date.now(),
+      user: G.user,
+      role: G.role,
+      courses: window.LMS_COURSES || window.COURSE_DB,
+      videos: window.LMS_VIDEOS,
+      doubts: window.LMS_DOUBTS,
+      materials: window.LMS_MATERIALS,
+      quizResults: window.LMS_QUIZ_RESULTS || window.QUIZ_RESULTS,
+      payments: window.LMS_PAYMENTS || window.PAYMENT_HISTORY,
+      students: window.ADMIN_STUDENTS,
+      faculty: window.ADMIN_FACULTY
+    };
+    localStorage.setItem('lms_data_store_v1', JSON.stringify(storeData));
+  } catch (err) {
+    console.warn('LocalStorage save warning:', err);
+  }
+};
+
+window.loadLocalStore = function() {
+  try {
+    const raw = localStorage.getItem('lms_data_store_v1');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    return null;
+  }
+};
 
 var G = { role: null, user: null, page: null };
 var PAGE_HISTORY = [];
